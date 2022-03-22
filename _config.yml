@@ -7,6 +7,7 @@ show_excerpts: false # set to true to show excerpts on the homepage
 header_pages:
  - projects.md
  - about.md
+ - testtab.md
 
 # Build settings
 theme: minima
