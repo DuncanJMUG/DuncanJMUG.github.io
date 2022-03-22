@@ -10,8 +10,8 @@ title: Analysis of Economic Data
 
 ## Contact Information 
 
-Paul Beaumont<br/>
-Department of Economics<br/>
+Duncan Mugford<br/>
+MSAE Program<br/>
 Florida State University <br/>
 Tallahassee, Florida, 32306 <br/>
 
