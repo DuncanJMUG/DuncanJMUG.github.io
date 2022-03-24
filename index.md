@@ -15,6 +15,4 @@ MSAE Program<br/>
 Florida State University <br/>
 Tallahassee, Florida, 32306 <br/>
 
-[Email:beaumont@fsu.edu](mailto:beaumont@fsu.edu)
-
-[Web Page:](https://paulmbeaumont.netlify.app/)
+[Email:duncanjmug@gmail.com](mailto:duncanjmug@gmail.com)
