@@ -5,7 +5,7 @@ title: Analysis of Economic Data
 
 ##  Projects
 <a> 
-<img src="DMimage.png" alt="pmb" width="250"/>
+<img src="DMimage.png" alt="Picture" width="250"/>
 </a>
 
 ## Contact Information 
