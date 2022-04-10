@@ -1,0 +1,151 @@
+---
+title: "Dynamic Relationships"
+subtitle: ""
+author: "Duncan Mugford"
+date: "`r format(Sys.Date(),'%B %d, %Y')`"
+output:
+  html_document:
+    df_print: paged
+    code_folding: "hide"
+    toc: yes
+    fig_caption: yes
+    theme: united
+    toc_float: no
+---
+
+```{r load packages, message= FALSE, warning=FALSE}
+require(mdsr)
+require(tidyverse)
+require(ggplot2)
+require(fpp3)
+require(tidyquant)
+require(slider)
+require(tsibble)
+require(stargazer)
+require(kableExtra)
+require(fma)
+require(fable)
+require(reshape2)
+require(urca)
+require(tsDyn)
+require(aTSA)
+require(forecast)
+require(vars)
+```
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list = ls())
+graphics.off()
+```
+Project available under projects on: [My Github Page](https://DuncanJMUG.github.io)
+
+Direct link to project: [Project](https://DuncanJMUG.github.io/VAR Project.html)
+
+
+## Executive Summary
+
+Unemployment Rate and Industrial Production intuitively have a link between them, as greater unemployment should lead to less industrial production. We tested the dynamic relationship between the two of these variables by running a series of tests to decide between using a VAR or VECM, with VECM being the decided upon model. The conclusions drawn from this were largely unclear, however there does seem to be a short run effect of industrial production following unemployment, but the relationship between the two grew more varied as time went on.
+
+```{r load data, MESSAGES = FALSE}
+FREDdata <- read.csv("C:\\Users\\chumb\\Documents\\R\\fred.csv")
+
+LBSSA12 <- read.csv("C:\\Users\\chumb\\Documents\\R\\LBSSA12.csv")
+
+varList2 <-
+  c(
+    "UNRATE",
+    "INDPRO"
+  )
+X <- tq_get(varList2, get = "economic.data", from = "1982-12-01") %>%
+  mutate(Month = yearmonth(date)) %>% dplyr::select(-date) %>%
+  as_tsibble(index = Month, key = symbol)
+
+Xw <- X %>%
+  pivot_wider(names_from = symbol, values_from = price) %>%
+  as_tsibble()
+
+unrate <- ts(Xw$UNRATE)
+indpro <- ts(Xw$INDPRO)
+
+
+```
+## Dynamics Goal
+
+The overall goal of this paper is to assess whether or not the two chosen variables exhibit a dynamic relationship between each other or not. In other words, we want to see if two variables are related in a way that one might lead into the other.
+
+The chosen variables here are UNRATE (the unemployment rate) and INDPRO (Industrial Production: Total Index). UNRATE and INDPRO are both seasonally adjusted and observed monthly. INDPRO is measured off an index with 2017=100 and UNRATE is measured in percentage. \
+
+The reason these two variables were chosen is because there is reason to believe that INDPRO will follow UNRATE in terms of trends. As the unemployment rate rises, the industrial production would be expected to fall as less workers are engaged in the industry. Similarly, if the unemployment rate falls, we would expect to see INDPRO rise in response. 
+
+## VAR or VECM?
+
+The question arises of how we want to specify the dynamic model: with a VAR or a VECM. A quick explanation of VAR and VECM:
+
+A VAR is a "Vector AutoRegression" model. It allows for multivariate time series in comparison to the usual single-variable autoregressive model.
+
+A VECM is a "Vector Error Correction Model". It is a special case of a VAR that we use when cointegration exists. Cointegration is when two variables are correlated and integrated in a way that they cannot deviate from the equilibrium in the long-run. 
+
+To figure out which to use we will go through a series of tests. First, we test the data for unit roots to see if it is stationary or not. If there are not unit roots present we will use  VAR in differences and a VECM model will not be necessary. If unit roots are present we will move on to estimating the model of the relationship between the two variables and testing for cointegration by testing if the residuals have a unit root. If a unit root is present in the residuals we will estimate a VAR, however if a unit root is not present this will mean the variables are cointegrated and we will estimate a VECM model.
+
+# Testing
+>Unit Root
+
+Now that VAR and VECM have been defined, the next step is determining which one to use. The first step in figuring this out is determining if the variables are stationary or not. If the variables have a unit root present, they can be considered not stationary. Thus we run a test on unit roots:
+
+```{r unit root, warning=FALSE}
+X %>% 
+  features(price, unitroot_ndiffs) %>% 
+  kable(format = "html", table.attr = "style='width:30%;' ") %>% 
+  kableExtra::kable_styling()
+```
+
+Both UNRATE and INDPRO are shown to hold a unit root. This means that they are not stationary and thus that we need to estimate a model:
+\begin{align}
+y_t = \alpha + \beta x_t + \epsilon_t 
+
+\end{align}
+And once this model is estimated we will test if the residual of the cointegrated relationship has a unit root or not.
+In short, this model is simply modeling changes in INDPRO off of changes in UNRATE. Alpha here represents the rate at which our "x" variable (INDPRO in our case) will follow the trends of our "y" variable (UNRATE).
+
+```{r residual unit root, warning=FALSE, results='asis'}
+coint.out <- lm(unrate ~ indpro)
+stargazer(coint.out, type = 'html', title = "Cointegrating Relationship")
+
+```
+>Dickey-Fuller Test
+
+Next, we plug the residuals of the above results into an Augmented Dickey-Fuller Test in order to test for a unit root in the residuals. When running a Dickey-Fuller test we have a null hypothesis that there is a unit root present, which is why we run our residuals through this test.
+
+The results obtained from the Dickey-Fuller is a test statistic of -3.7 which gives us a very low p-value, meaning that we reject the null hypothesis that there is a unit root present in the residuals. Furthermore, the phi values obtained from DF test show us that we reject the null hypothesis that both a unit root is present and that there is no drift term.
+The important takeaway from this is that we conclude that the residuals do not have a unit root and therefore that we should run a VECM model on our variables.
+```{r resid root, warning=FALSE,results='hide'}
+coint.resids <- coint.out$residuals
+ur.resids <- ur.df(coint.resids, type = "drift", selectlags = "BIC")
+summary(ur.resids)
+```
+
+# VECM Model
+
+```{r VECM creation, message=FALSE, results='hide'}
+z.unpro <- as.ts(cbind(unrate, indpro))
+p.vecm <- as.integer(VARselect(z.unpro,lag.max=12,type="const")$selection[2]) # -1
+vecm.unpro <- VECM(z.unpro,p.vecm,r=1,include="const",estim="ML",LRinclude="none")
+summary(vecm.unpro)
+```
+
+```{r IRF, message=FALSE}
+irf.unpro <- irf(vecm.unpro, n.ahead = 50)
+plot(irf.unpro)
+```
+
+>IRF Result
+
+Our IRF (Impulse Response Function) shows that both variables seem to hold a noticeable impact on each other. If UNRATE was truly the leading variable, the IRF on INDPRO would be expected to show UNRATE not changing outside of the "0" line which is not the case in these results. Interestingly enough, the same can be said for INDPRO, as it is also shown to react to changes in UNRATE. Due to the IRF being difficult to properly assess, it may be more worthwhile to look at the FEVD below.
+```{r fevd,message=FALSE}
+plot(fevd(vecm.unpro, n.ahead = 30))
+```
+
+>FEVD Result
+
+The results from our FEVD (Forecast Error Variance Decomposition), show that in the short run horizon, unemployment rate has a big impact on industrial production but over time this effect weakens while the effect of industrial production on unemployment rate actually grows slightly over time. 
+This has an interesting implication that industrial production may be responsive to shocks in the unemployment rate, but in the long run unemployment rate may follow the trend of industrial production.
