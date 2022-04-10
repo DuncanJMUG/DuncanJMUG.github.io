@@ -17,6 +17,9 @@ knitr::opts_chunk$set(echo = TRUE)
 rm(list = ls())
 graphics.off()
 ```
+Project available under projects on: [My Github Page](https://DuncanJMUG.github.io)
+
+Direct link to project: [Project](https://duncanjmug.github.io/Project.html)
 
 ```{r load packages, message= FALSE, warning=FALSE}
 require(mdsr)
@@ -34,7 +37,7 @@ require(reshape2)
 
 ```
 
-The first step in attempting to forecast inflation is correctyl defining our data. Data has been downloaded from FRED, with the variables singled out being TCU,MICH,UNRATE,PCEPI, and IPMAN.
+The first step in attempting to forecast inflation is correctly defining our data. Data has been downloaded from FRED, with the variables singled out being TCU,MICH,UNRATE,PCEPI, and IPMAN.
 We gathered these variables in specific as there is reason to believe they could hold an impact on forecasting inflation. 
 
 >Defining the variables
