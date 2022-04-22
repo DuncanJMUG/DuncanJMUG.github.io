@@ -38,7 +38,9 @@ rm(list = ls())
 graphics.off()
 ```
 
+Project available under projects on: [My Github Page](https://DuncanJMUG.github.io)
 
+Direct link to project: [Project](https://DuncanJMUG.github.io/VAR-Project.html)
 
 ## Executive Summary
 
