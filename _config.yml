@@ -1,5 +1,5 @@
 title: Home
-show_excerpts: true # set to true to show excerpts on the homepage
+show_excerpts: false # set to true to show excerpts on the homepage
 
 
 # If you want to link only specific pages in your header, uncomment

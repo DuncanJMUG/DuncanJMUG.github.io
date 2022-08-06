@@ -2,6 +2,11 @@
 layout: page
 title: About
 ---
+<header>
+[Home](https://DuncanJMUG.github.io/index.html)
+[About](https://DuncanJMUG.github.io/about.html)
+[Projects](https://DuncanJMUG.github.io/projects.html)
+</header>
 
 This website is built as a show of accomplishment. In the projects tab are some real examples of different types of projects I have completed. 
 
