@@ -3,7 +3,6 @@ layout: page
 title: Duncan James Mugford
 ---
 
-##  Projects
 <a> 
 <center>
 <img src="Image2.png" alt="Picture" width="250"/>
